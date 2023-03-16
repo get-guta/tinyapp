@@ -16,7 +16,7 @@ function generateRandomString() {
 
 }
 //update url and redirect to main page
-app.post("/urls/:id", (req,res)=>{
+app.post("/urls/:id", (req, res) => {
   console.log(req.params.id);
   const newUrl = req.body.longURL;
   console.log("new url", req.body);
@@ -38,24 +38,28 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls/:id");
 });
 
-app.post("/urls/:id/delete",(req,res)=>{
+app.post("/urls/:id/delete", (req, res) => {
   const shortUrl = req.params.id;
   delete urlDatabase[shortUrl];
   console.log("after deletion:", urlDatabase);
   res.redirect("/urls");
 });
 
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username).redirect("/urls");
+  
+})
 
 
 
 //Redirect to long url
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
-    if (longURL) {
-      return res.redirect(longURL);            
-    }else{
-       return res.status(404).send('404 Page Not Found');     
-    }
+  if (longURL) {
+    return res.redirect(longURL);
+  } else {
+    return res.status(404).send('404 Page Not Found');
+  }
 });
 // renders availble urls
 app.get("/urls", (req, res) => {
