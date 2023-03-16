@@ -19,12 +19,19 @@
       </div>
      
     </div>
-    <form method = "post" action="/login">
-      <input type="text" name="username" placeholder="Username"/>
-      <input type="submit" value="Submit">
-       
+    
+    <%if(username) {%>
+    <form method="post" action="/logout">
+      <input type="submit" value="Logout">
     </form>
     &nbsp;&nbsp; <h4>  <%= username%></h4>
+    <%}else{%>
+      <form method = "post" action="/login">
+        <input type="text" name="username" placeholder="Username"/>
+        <input type="submit" value="Submit">
+         
+      </form>
+      <%}%>
    
   </nav>
  

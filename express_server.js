@@ -50,10 +50,17 @@ app.post("/urls/:id/delete", (req, res) => {
   res.redirect("/urls");
 });
 
+//login
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect("/urls");
 
+})
+
+//logout
+app.post("/logout", (req, res)=>{
+  res.clearCookie('username');
+  res.redirect("/urls");
 })
 
 
