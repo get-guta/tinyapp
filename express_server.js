@@ -15,6 +15,15 @@ function generateRandomString() {
   return urlString;
 
 }
+//update url and redirect to main page
+app.post("/urls/:id", (req,res)=>{
+  console.log(req.params.id);
+  const newUrl = req.body.longURL;
+  console.log("new url", req.body);
+  urlDatabase[req.params.id] = newUrl;
+  res.redirect("/urls");
+});
+
 app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
@@ -29,20 +38,32 @@ app.post("/urls", (req, res) => {
   res.redirect("/urls/:id");
 });
 
+app.post("/urls/:id/delete",(req,res)=>{
+  const shortUrl = req.params.id;
+  delete urlDatabase[shortUrl];
+  console.log("after deletion:", urlDatabase);
+  res.redirect("/urls");
+});
+
+
+
+
+//Redirect to long url
 app.get("/u/:id", (req, res) => {
   const longURL = urlDatabase[req.params.id];
-  //console.log("Id", req.params.id);
     if (longURL) {
       return res.redirect(longURL);            
     }else{
        return res.status(404).send('404 Page Not Found');     
     }
 });
-
+// renders availble urls
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase }
   res.render("urls_index", templateVars);
 });
+
+
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
   res.render("urls_show", templateVars);
