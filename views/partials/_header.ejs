@@ -17,6 +17,22 @@
         <a class="nav-item nav-link" href="/urls">My URLs</a>
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
+     
     </div>
+    <%if(email) {%>
+    <form method="post" action="/logout">
+      <input type="submit" value="Logout">
+    </form>
+    &nbsp;&nbsp; <h4>  <%= email%></h4>
+    <%}else{%>
+      <a href="/login">Login</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/register">Register</a>
+     <!-- <form method = "post" action="/login">
+        <input type="text" name="username" placeholder="Username"/>
+        <input type="submit" value="Submit">
+         
+      </form>--> 
+      <%}%>
+   
   </nav>
+ 
 </header>

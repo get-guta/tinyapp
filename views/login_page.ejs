@@ -14,28 +14,25 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-
-    <title>New URL - TinyApp Example</title>
+    <title>TinyApp</title>
   </head>
-
+  
   <body>
-   
-
     <main style="margin: 1em;">
-      <h3>Create TinyURL</h3>
-      <form class="form-inline" action="/urls" method="POST">
-        <div class="form-group mb-2">
-          <label for="longURL">Enter a URL:</label>
-          <input
-            class="form-control"
-            type="text"
-            name="longURL"
-            placeholder="http://"
-            style="width: 300px; margin: 1em"
-          />
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
-      </form>
+      <%if(unauthorized) {%>
+        <h5><%= unauthorized%>.</h5>
+        <%}%>
+    <form method ="post" action="/login">
+      <fieldset>
+        <legend>Login</legend>
+      <input type="text" name="email" placeholder="email"/>
+      <input type="password" name="password" placeholder="password"/>
+      <input type="submit" value="Login"/>
+      <div><h5>New User? Register <a href="/register">here</a></h5></div>
+      </fieldset>
+    </form>
+    
+    
     </main>
     <!-- Bootstrap JS -->
     <script
