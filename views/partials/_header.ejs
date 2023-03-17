@@ -19,18 +19,18 @@
       </div>
      
     </div>
-    
-    <%if(username) {%>
+    <%if(email) {%>
     <form method="post" action="/logout">
       <input type="submit" value="Logout">
     </form>
-    &nbsp;&nbsp; <h4>  <%= username%></h4>
+    &nbsp;&nbsp; <h4>  <%= email%></h4>
     <%}else{%>
-      <form method = "post" action="/login">
+      <a href="/login">Login</a>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/register">Register</a>
+     <!-- <form method = "post" action="/login">
         <input type="text" name="username" placeholder="Username"/>
         <input type="submit" value="Submit">
          
-      </form>
+      </form>--> 
       <%}%>
    
   </nav>
