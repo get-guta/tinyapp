@@ -139,7 +139,7 @@ app.post("/register", (req, res) => {
   } else {
     res.render("register_new", { required: "Email and Password are required feilds.", emailExist: undefined, success: undefined });
   };
-  res.cookie('user_id', generateRandomString());
+  res.cookie('user_id', );
   res.redirect("/urls");
   console.log(users);
 
