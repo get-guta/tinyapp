@@ -16,17 +16,23 @@ const urlDatabase = {
 };
 const emptyURL = {};
 const testpassword = bcrypt.hashSync("test123", salt);
-const user = {"user 0": {"email": "test@gmail.com", "password": testpassword, "url": urlDatabase 
-}};
+
+
+const users = {
+  "h6dr5f": {
+
+    "id": "h6dr5f","email": "test@gmail.com", "password": testpassword, "url": urlDatabase
+  }
+};
 function generateRandomString() {
-  let urlString = (Math.random() + 1).toString(36).substring(6)
+  let urlString = (Math.random() + 1).toString(36).substring(6);
   return urlString;
 }
 
 const isEmailExist = function (email) {
   let exist = false;
-  for (let userKey in user) {
-    const userData = user[userKey];
+  for (let userKey in users) {
+    const userData = users[userKey];
     if (email === userData.email) {
       exist = true
       break;
@@ -38,8 +44,8 @@ const isEmailExist = function (email) {
 const isAuthenticated = function (email, password) {
   let isUser = false;
   const hashed = bcrypt.hashSync(password, salt)
-  for (let userKey in user) {
-    const userData = user[userKey];
+  for (let userKey in users) {
+    const userData = users[userKey];
     if (email === userData.email) {
       if (hashed == userData.password) {
         isUser = true;
@@ -51,19 +57,19 @@ const isAuthenticated = function (email, password) {
 }
 
 
-const setUrlByEmail = function(email, newUrl){
-  for (let userKey in user) {
-    const userData = user[userKey];
+const setUrlByEmail = function (email, newUrl) {
+  for (let userKey in users) {
+    const userData = users[userKey];
     if (email === userData.email) {
       const id = generateRandomString();
       const urlDict = userData.url;
       urlDict[id] = newUrl;
       userData.url = urlDict;
       return id;
-     
+
     }
-}
-return undefined;
+  }
+  return undefined;
 }
 
 //update url and redirect to main page
@@ -78,18 +84,18 @@ app.post("/urls", (req, res) => {
   //res.send("Ok"); // Respond with 'Ok' (we will replace this)
   const longUrl = req.body.longURL;
   // register new shortUrl to urlDatabase object
-  if(req.cookies["email"]){
+  if (req.cookies["email"]) {
     const urlByEmail = setUrlByEmail(req.cookies["email"], longUrl);
-    if(urlByEmail){
-      res.redirect("/urls/"+urlByEmail);
+    if (urlByEmail) {
+      res.redirect("/urls/" + urlByEmail);
 
-    }else{
+    } else {
       res.redirect("/login");
     }
 
 
   }
-  
+
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -116,15 +122,14 @@ app.post("/login", (req, res) => {
 app.post("/register", (req, res) => {
   const email = req.body.email;
   const password = req.body.password
-
-  const len = user.length;
-
+  const len = users.length;
   if (email && password) {
     if (isEmailExist(email)) {
       res.render("register_new", { emailExist: "Already registed email. Please signin to protected pages.", success: undefined, required: undefined });
     } else {
       const hash = bcrypt.hashSync(password, salt)
-      user["user " + len] = {
+      users[generateRandomString()] = {
+        "user_id": generateRandomString(),
         "email": email,
         "password": hash,
         "urls": emptyURL
@@ -134,9 +139,9 @@ app.post("/register", (req, res) => {
   } else {
     res.render("register_new", { required: "Email and Password are required feilds.", emailExist: undefined, success: undefined });
   };
-  // res.cookie('email', req.body.email);
-  // res.redirect("/urls");
-  // console.log(user);
+  res.cookie('user_id', generateRandomString());
+  res.redirect("/urls");
+  console.log(users);
 
 });
 
@@ -150,6 +155,9 @@ app.get("/register", (req, res) => {
   }
 
 });
+
+
+
 
 //GET: login
 app.get("/login", (req, res) => {
@@ -171,12 +179,12 @@ app.get("/urls/new", (req, res) => {
   const templateVars = {
     email: req.cookies["email"]
   }
-  if(req.cookies["email"]){
+  if (req.cookies["email"]) {
     res.render("urls_new", templateVars);
-  }else{
+  } else {
     res.redirect("/login")
   }
-  
+
 });
 
 //Redirect to long url
@@ -194,20 +202,20 @@ app.get("/urls", (req, res) => {
     urls: getUrlByEmail(req.cookies["email"]),
     email: req.cookies["email"]
   }
-  if(req.cookies["email"]){
+  if (req.cookies["email"]) {
     res.render("urls_index", templateVars);
-  }else{
+  } else {
 
-    res.render("login_page", {unauthorized: "Unauthorized Access, Please login"});
+    res.render("login_page", { unauthorized: "Unauthorized Access, Please login" });
   }
-  
+
 });
-const getUrlByEmail = function(email){
-  for (let userKey in user) {
-    const userData = user[userKey];
+const getUrlByEmail = function (email) {
+  for (let userKey in users) {
+    const userData = users[userKey];
     if (email === userData.email) {
       return userData.url;
-      
+
     }
   }
   return emptyURL;
@@ -216,7 +224,7 @@ const getUrlByEmail = function(email){
 
 
 app.get("/urls/:id", (req, res) => {
-  if(req.cookies["email"]){
+  if (req.cookies["email"]) {
     const urlDB = getUrlByEmail(req.cookies["email"]);
     const templateVars = {
       id: req.params.id,
@@ -224,11 +232,11 @@ app.get("/urls/:id", (req, res) => {
       email: req.cookies["email"]
     };
     res.render("urls_show", templateVars);
-  }else{
-    res.render("login_page", {unauthorized: "Unauthorized Access, Please login"});
+  } else {
+    res.render("login_page", { unauthorized: "Unauthorized Access, Please login" });
 
   }
-  
+
 });
 
 app.get("/", (req, res) => {
