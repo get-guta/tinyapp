@@ -31,10 +31,11 @@
           </tr>
         </thead>
         <tbody>
-          <% for (let id in urls) { %>
+          <%if(user) {%>
+          <% for (let id in user.urls) { %>
             <tr>
               <td><%= id %></td>
-              <td><%= urls[id] %></td>
+              <td><%= user.urls[id] %></td>
               <td>
                 <a href ="/urls/<%= id%>"> Edit</a>
               </td>
@@ -43,7 +44,7 @@
               </form></td>
               
             </tr>
-          <% } %>
+          <% } } %>
         </tbody>
       </table>
      
