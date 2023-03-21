@@ -16,21 +16,35 @@
     />
     <title>TinyApp</title>
   </head>
-  
+  <header>
+    <%- include('partials/_header');%>
+  </header>
   <body>
-    <main style="margin: 1em;">
-      <%if(unauthorized) {%>
-        <h5><%= unauthorized%>.</h5>
-        <%}%>
-    <form method ="post" action="/login">
-      <fieldset>
-        <legend>Login</legend>
-      <input type="text" name="email" placeholder="email"/>
-      <input type="password" name="password" placeholder="password"/>
-      <input type="submit" value="Login"/>
-      <div><h5>New User? Register <a href="/register">here</a></h5></div>
-      </fieldset>
+    <main style="margin: 2em;">
+
+      
+
+    <form action ="/login" method="post">
+      <div class="row"><legend>Login </legend>  </div>  
+      <div class="row">
+      <div class="mb-2">
+        <label for="Email1">Email address</label>
+        <input type="email" class="form-control"  name="email" placeholder="Enter email">
+      </div>
+      </div>
+      <div class="row">
+      <div class="mb-2">
+        <label for="Password">Password</label>
+        <input type="password" class="form-control" name="password" placeholder="Password">
+      </div>
+
+      </div>
+      <div class="row">
+      <button type="submit" class="btn btn-primary">Login</button>
+      </div>
+     
     </form>
+    
     
     
     </main>

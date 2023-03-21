@@ -10,32 +10,32 @@
     integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous" />
   <title>TinyApp</title>
 </head>
-
+<header>
+  <%- include('partials/_header');%>
+</header>
 <body>
-  <main style="margin: 1em;">
-    <%if(emailExist){%>
-      <h5>
-        <%= emailExist%>
-      </h5>
-      <%}%>
-        <%if(success){%>
-          <h5>
-            <%= success%>
-          </h5>
-          <%}%>
-            <%if(required){%>
-              <h5>
-                <%= required%>
-              </h5>
-              <%}%>
-                <form method="post" action="/register">
-                  <fieldset style="width:300px">
-                    <legend>Register</legend>
-                    <label>Email: </label> <input type="email" name="email" placeholder="email" /><br>
-                    <label>Password: </label> <input type="password" name="password" placeholder="password" /><br>
-                    <div style="float: center;"> <input type="submit" value="Register" /></div>
-                  </fieldset>
-                </form>
+  <main style="margin: 2em;">
+   
+              <form action ="/register" method="post">
+                <div class="row"><legend>Register </legend>  </div>  
+                <div class="row">
+                <div class="mb-2">
+                  <label for="Email1">Email address</label>
+                  <input type="email" class="form-control"  name="email" placeholder="Enter email">
+                </div>
+                </div>
+                <div class="row">
+                <div class="mb-2">
+                  <label for="Password">Password</label>
+                  <input type="password" class="form-control" name="password" placeholder="Password">
+                </div>
+          
+                </div>
+                <div class="row">
+                <button type="submit" class="btn btn-primary">Register</button>
+                </div>
+               
+              </form>
                <div> Already Registered? <a href="/login">Signin</a></div>  
   </main>
   <!-- Bootstrap JS -->

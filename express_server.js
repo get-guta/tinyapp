@@ -1,70 +1,19 @@
 
 const express = require("express");
 const cookie_parser = require("cookie-parser");
-const bcrypt = require('bcryptjs');
-const salt = bcrypt.genSaltSync(10);
+const { isAuthenticated, getUserByEmail, addUser } = require("./helpers/userHelper");
+const { setUrlByEmail, getUrlByEmail } = require("./helpers/urlHelper");
+const { USERS, URL_DATABASE } = require("./helpers/config");
+
 const app = express();
 const PORT = 8080; // default port 8080
+
+//Middleware
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookie_parser());
-const urlDatabase = {
-  "b2xVn2": "http://localhost:8080/urls",
-  "9sm5xK": "http://www.google.com",
-  "8dr9zb": "https://weather.com"
-};
-const emptyURL = {};
-const testpassword = bcrypt.hashSync("test123", salt);
-const user = {"user 0": {"email": "test@gmail.com", "password": testpassword, "url": urlDatabase 
-}};
-function generateRandomString() {
-  let urlString = (Math.random() + 1).toString(36).substring(6)
-  return urlString;
-}
 
-const isEmailExist = function (email) {
-  let exist = false;
-  for (let userKey in user) {
-    const userData = user[userKey];
-    if (email === userData.email) {
-      exist = true
-      break;
-    }
-  }
-  return exist;
-}
-
-const isAuthenticated = function (email, password) {
-  let isUser = false;
-  const hashed = bcrypt.hashSync(password, salt)
-  for (let userKey in user) {
-    const userData = user[userKey];
-    if (email === userData.email) {
-      if (hashed == userData.password) {
-        isUser = true;
-        break;
-      }
-    }
-  }
-  return isUser;
-}
-
-
-const setUrlByEmail = function(email, newUrl){
-  for (let userKey in user) {
-    const userData = user[userKey];
-    if (email === userData.email) {
-      const id = generateRandomString();
-      const urlDict = userData.url;
-      urlDict[id] = newUrl;
-      userData.url = urlDict;
-      return id;
-     
-    }
-}
-return undefined;
-}
 
 //update url and redirect to main page
 app.post("/urls/:id", (req, res) => {
@@ -74,22 +23,19 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  //console.log(req.body); // Log the POST request body to the console
-  //res.send("Ok"); // Respond with 'Ok' (we will replace this)
   const longUrl = req.body.longURL;
   // register new shortUrl to urlDatabase object
-  if(req.cookies["email"]){
+  if (req.cookies["email"]) {
     const urlByEmail = setUrlByEmail(req.cookies["email"], longUrl);
-    if(urlByEmail){
-      res.redirect("/urls/"+urlByEmail);
+    if (urlByEmail) {
+      res.redirect("/urls/" + urlByEmail);
 
-    }else{
+    } else {
       res.redirect("/login");
     }
 
-
   }
-  
+
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -103,85 +49,84 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password
-  if (isAuthenticated(email, password)) {
-    res.cookie('email', email);
-    res.redirect("/urls");
+
+  const userData = getUserByEmail(email, USERS);
+  if (userData) {
+
+    const auth = isAuthenticated(password, userData);
+    if (auth) {
+      res.cookie('user_id', userData.id);
+      res.redirect("/urls");
+    } else {
+
+      res.status(403).send('Status: Unauthorized');
+    }
   } else {
-    res.render("login_page", { unauthorized: "Invalid username or password!" });
+    res.status(403).send('Status: Unauthorized');
+
+
   }
+
 
 });
 
 //POST: register
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password
-
-  const len = user.length;
-
+  const password = req.body.password;
   if (email && password) {
-    if (isEmailExist(email)) {
-      res.render("register_new", { emailExist: "Already registed email. Please signin to protected pages.", success: undefined, required: undefined });
+    const existingUser = getUserByEmail(email, USERS);
+    if (existingUser) {
+      res.status(400).send('Status: Bad Request. Existing User!')
     } else {
-      const hash = bcrypt.hashSync(password, salt)
-      user["user " + len] = {
-        "email": email,
-        "password": hash,
-        "urls": emptyURL
-      };
-      res.render("register_new", { success: "Successfuly added new user.", emailExist: undefined, required: undefined });
+      const user = addUser(email, password, USERS)
+      res.cookie("user_id", user);
+      res.redirect("/urls");
     }
   } else {
-    res.render("register_new", { required: "Email and Password are required feilds.", emailExist: undefined, success: undefined });
+    res.status(400).send('Satus: Bad request. Email and Passwoed are Required Fields!')
   };
-  // res.cookie('email', req.body.email);
-  // res.redirect("/urls");
-  // console.log(user);
-
 });
 
 
 //GET: register
 app.get("/register", (req, res) => {
-  if (req.cookies["email"]) {
+  if (req.cookies["user_id"]) {
     res.redirect("/urls");
   } else {
-    res.render("register_new", { required: undefined, emailExist: undefined, success: undefined });
+
+    res.render("register_new", {user : undefined });
   }
 
 });
 
 //GET: login
 app.get("/login", (req, res) => {
-  if (req.cookies["email"]) {
-    res.redirect("/urls");
-  }
 
-  res.render("login_page", { unauthorized: undefined });
+  res.render("login_page", { user: undefined });
 
 });
 
 //logout
 app.post("/logout", (req, res) => {
-  res.clearCookie('email');
-  res.render("login_page", { unauthorized: undefined });
+  res.clearCookie('user_id');
+  res.redirect("/login");
 })
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = {
-    email: req.cookies["email"]
-  }
-  if(req.cookies["email"]){
-    res.render("urls_new", templateVars);
-  }else{
+  const user_id = req.cookies["user_id"];
+  if (user_id) {
+    const templateVars = USERS[user_id];
+    res.render("urls_new", { user: templateVars });
+  } else {
     res.redirect("/login")
   }
-  
+
 });
 
 //Redirect to long url
 app.get("/u/:id", (req, res) => {
-  const longURL = getUrlByEmail(req.cookies["email"])[req.params.id];
+  const longURL = getUrlByID(req.cookies["email"])[req.params.id];
   if (longURL) {
     return res.redirect(longURL);
   } else {
@@ -190,61 +135,45 @@ app.get("/u/:id", (req, res) => {
 });
 // renders availble urls
 app.get("/urls", (req, res) => {
-  const templateVars = {
-    urls: getUrlByEmail(req.cookies["email"]),
-    email: req.cookies["email"]
+  const userID = req.cookies["user_id"];
+  if (userID) {
+    const templateVars = USERS[userID];
+    res.render("urls_index", { user: templateVars });
+  } else {
+    res.render("login_page", { unauthorized: "Unauthorized Access, Please login" });
   }
-  if(req.cookies["email"]){
-    res.render("urls_index", templateVars);
-  }else{
 
-    res.render("login_page", {unauthorized: "Unauthorized Access, Please login"});
-  }
-  
 });
-const getUrlByEmail = function(email){
-  for (let userKey in user) {
-    const userData = user[userKey];
-    if (email === userData.email) {
-      return userData.url;
-      
-    }
-  }
-  return emptyURL;
-}
-
 
 
 app.get("/urls/:id", (req, res) => {
-  if(req.cookies["email"]){
-    const urlDB = getUrlByEmail(req.cookies["email"]);
+  if (req.cookies["email"]) {
+    const urlDB = getUrlByEmail(req.cookies["user_id"]);
     const templateVars = {
       id: req.params.id,
       longURL: urlDB[req.params.id],
-      email: req.cookies["email"]
+      email: req.cookies["user_id"]
     };
-    res.render("urls_show", templateVars);
-  }else{
-    res.render("login_page", {unauthorized: "Unauthorized Access, Please login"});
+    res.render("urls_show", { user: templateVars });
+  } else {
+    res.render("login_page", { unauthorized: "Unauthorized Access, Please login" });
 
   }
-  
+
 });
 
 app.get("/", (req, res) => {
-  if (req.cookies["email"]) {
+  if (req.cookies["user_id"]) {
     res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+
   }
-  res.redirect("/login");
+
 });
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
 
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
-});
+
