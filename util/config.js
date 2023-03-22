@@ -1,6 +1,8 @@
 
-const {encryptText,generateSecret} = require("./utils");
-const testpassword = encryptText("test123", generateSecret());
+const { encryptText } = require("./utils");
+const testpassword = encryptText("test123");
+
+/// Global Varialbles
 
 const USERS = {
   "h6dr5f": {
@@ -21,4 +23,4 @@ const URL_DATABASE = {
 };
 
 
-module.exports={URL_DATABASE, USERS}
+module.exports = { URL_DATABASE, USERS }
