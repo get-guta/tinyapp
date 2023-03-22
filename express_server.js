@@ -1,8 +1,8 @@
 
 const express = require("express");
-const cookie_parser = require("cookie-parser");
-const { isAuthenticated, getUserByEmail, addUser } = require("./helpers/userHelper");
-const { setUrlByEmail, getUrlByEmail } = require("./helpers/urlHelper");
+const cookieSession = require('cookie-session');
+const { isAuthenticated, addUser ,getUserByEmail} = require("./helpers/userHelper");
+const { setUrlByEmail, urlsForUser, getUrlbyId } = require("./helpers/urlHelper");
 const { USERS, URL_DATABASE } = require("./helpers/config");
 
 const app = express();
@@ -12,21 +12,48 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
-app.use(cookie_parser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['tiny', 'fafi' ],
+
+  // Cookie Options
+  maxAge: 24 * 60 * 60 * 1000 // 24 hours
+}))
 
 
 //update url and redirect to main page
 app.post("/urls/:id", (req, res) => {
-  const newUrl = req.body.longURL;
-  urlDatabase[req.params.id] = newUrl;
-  res.redirect("/urls");
+  
+  if (req.cookies["user_id"]) {
+    const newUrl = req.body.longURL;
+    if (req.params.id in URL_DATABASE) {
+      const urlDB = urlsForUser(req.cookies["user_id"], URL_DATABASE);
+      const userUrl = urlDB[req.params.id];
+      if (userUrl) {
+        const shortUrl = req.body.shortUrl;
+        URL_DATABASE[shortUrl].longURL = newUrl;
+        res.redirect("/urls");
+
+      }else{
+        res.status(403).send('Status: Forbidden Access');
+      }
+
+    }else{
+      res.status(404).send('Status: URL Not Found');
+
+    }
+  }else{
+    res.status(403).send('Status: Unauthorized Access')
+
+  }
+
 });
 
 app.post("/urls", (req, res) => {
   const longUrl = req.body.longURL;
   // register new shortUrl to urlDatabase object
-  if (req.cookies["email"]) {
-    const urlByEmail = setUrlByEmail(req.cookies["email"], longUrl);
+  if (req.cookies["user_id"]) {
+    const urlByEmail = setUrlByEmail(req.cookies["user_id"], longUrl);
     if (urlByEmail) {
       res.redirect("/urls/" + urlByEmail);
 
@@ -34,16 +61,70 @@ app.post("/urls", (req, res) => {
       res.redirect("/login");
     }
 
+  } else {
+    res.status(403).send('Status: Unauthorized Access')
   }
 
 });
 
 app.post("/urls/:id/delete", (req, res) => {
-  const shortUrl = req.params.id;
-  delete urlDatabase[shortUrl];
-  console.log("after deletion:", urlDatabase);
-  res.redirect("/urls");
+  if (req.cookies["user_id"]) {
+    if (req.params.id in URL_DATABASE) {
+      const urlDB = urlsForUser(req.cookies["user_id"], URL_DATABASE);
+      const userUrl = urlDB[req.params.id];
+      if (userUrl) {
+        const shortUrl = req.params.id;
+        delete URL_DATABASE[shortUrl];
+        res.redirect("/urls");
+
+      }else{
+        res.status(403).send('Status: Forbidden Access');
+      }
+
+    }else{
+      res.status(404).send('Status: URL Not Found');
+
+    }
+  }else{
+    res.status(403).send('Status: Unauthorized Access')
+
+  }
+
+
+
 });
+
+
+app.get("/urls/:id", (req, res) => {
+  if (req.cookies["user_id"]) {
+    if (req.params.id in URL_DATABASE) {
+      const urlDB = urlsForUser(req.cookies["user_id"], URL_DATABASE);
+      const userUrl = urlDB[req.params.id];
+      if (userUrl) {
+        const templateVars = {
+          id: req.params.id,
+          longURL: urlDB[req.params.id],
+          user: USERS[req.cookies["user_id"]]
+        };
+
+        res.render("urls_show", templateVars);
+
+      } else {
+        res.status(403).send('Status: Forbidden Access');
+      }
+
+    } else {
+      res.status(404).send('Status: URL Not Found')
+
+    }
+
+  } else {
+    res.status(403).send('Status: Unauthorized Access')
+
+  }
+
+});
+
 
 //login
 app.post("/login", (req, res) => {
@@ -95,13 +176,16 @@ app.get("/register", (req, res) => {
     res.redirect("/urls");
   } else {
 
-    res.render("register_new", {user : undefined });
+    res.render("register_new", { user: undefined });
   }
 
 });
 
 //GET: login
 app.get("/login", (req, res) => {
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls")
+  }
 
   res.render("login_page", { user: undefined });
 
@@ -126,41 +210,33 @@ app.get("/urls/new", (req, res) => {
 
 //Redirect to long url
 app.get("/u/:id", (req, res) => {
-  const longURL = getUrlByID(req.cookies["email"])[req.params.id];
-  if (longURL) {
-    return res.redirect(longURL);
+  const uid = req.params.id;
+  const longUrl = getUrlbyId(uid, URL_DATABASE);
+  if (longUrl) {
+    console.log(longUrl);
+    return res.redirect(longUrl["longURL"]);
+
   } else {
-    return res.status(404).send('404 Page Not Found');
+    return res.status(404).send('Status: Unknown Url ID');
   }
 });
 // renders availble urls
 app.get("/urls", (req, res) => {
   const userID = req.cookies["user_id"];
   if (userID) {
-    const templateVars = USERS[userID];
-    res.render("urls_index", { user: templateVars });
+    const urlDB = urlsForUser(userID, URL_DATABASE);
+    const templateVars = {url: urlDB, user: USERS[req.cookies["user_id"]]};
+    console.log(templateVars)
+    res.render("urls_index", templateVars);
   } else {
-    res.render("login_page", { unauthorized: "Unauthorized Access, Please login" });
+    return res.status(403).send('Status: Unauthorized Access');
+
   }
 
 });
 
 
-app.get("/urls/:id", (req, res) => {
-  if (req.cookies["email"]) {
-    const urlDB = getUrlByEmail(req.cookies["user_id"]);
-    const templateVars = {
-      id: req.params.id,
-      longURL: urlDB[req.params.id],
-      email: req.cookies["user_id"]
-    };
-    res.render("urls_show", { user: templateVars });
-  } else {
-    res.render("login_page", { unauthorized: "Unauthorized Access, Please login" });
 
-  }
-
-});
 
 app.get("/", (req, res) => {
   if (req.cookies["user_id"]) {

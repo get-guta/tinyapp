@@ -1,4 +1,5 @@
 const generateRandomString = require("./utils");
+
 const setUrlByEmail = function (email, newUrl, userDB) {
   for (let userKey in userDB) {
     const userData = userDB[userKey];
@@ -12,18 +13,42 @@ const setUrlByEmail = function (email, newUrl, userDB) {
     }
   }
   return undefined;
-}
-const getUrlByEmail = function (email, userDB) {
-  for (let userKey in userDB) {
-    const userData = userDB[userKey];
-    if (email === userData.email) {
-      return userData.url;
 
-    }
+}
+
+
+const getUrlbyId = function (urlId, urlDB) {
+  if (urlId in urlDB) {
+    return urlDB[urlId];
   }
-  return {};
+
+  return null;
+
+
+}
+
+const urlsForUser = function (uid, urlDB) {
+  const urls = {};
+  let noUrl = true;
+  for (let userKey in urlDB) {
+    const urlData = urlDB[userKey];
+    if (urlData["userID"] === uid) {
+      urls[userKey] = urlData.longURL;
+      noUrl = false;
+    }
+
+  }
+  if (!noUrl) {
+    return urls;
+
+  }else{
+    return noUrl;
+  }
+
+
+
 }
 
 
-module.exports = {getUrlByEmail, setUrlByEmail};
+module.exports = { urlsForUser, setUrlByEmail, getUrlbyId };
 

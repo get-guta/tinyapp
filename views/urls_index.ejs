@@ -31,11 +31,11 @@
           </tr>
         </thead>
         <tbody>
-          <%if(user) {%>
-          <% for (let id in user.urls) { %>
+          <%if(url) {%>
+          <% for (let id in url) { %>
             <tr>
               <td><%= id %></td>
-              <td><%= user.urls[id] %></td>
+              <td><%= url[id] %></td>
               <td>
                 <a href ="/urls/<%= id%>"> Edit</a>
               </td>

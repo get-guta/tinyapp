@@ -1,19 +1,24 @@
 
 const {encryptText,generateSecret} = require("./utils");
-
-const URL_DATABASE = {
-  "b2xVn2": "http://localhost:8080/urls",
-  "9sm5xK": "http://www.google.com",
-  "8dr9zb": "https://weather.com"
-};
-
 const testpassword = encryptText("test123", generateSecret());
 
 const USERS = {
   "h6dr5f": {
-
-    "id": "h6dr5f", "email": "test@gmail.com", "password": testpassword, "url": URL_DATABASE
+    "id": "h6dr5f", "email": "test@gmail.com", "password": testpassword
   }
 };
+
+
+const URL_DATABASE = {
+  "b2xVn2": {
+    "longURL": "https://www.lighthouselabs.ca/",
+    "userID": "h6dr5f",
+  },
+  "9sm5xK": {
+    "longURL": "https://www.google.ca",
+    "userID": "h6dr5f",
+  },
+};
+
 
 module.exports={URL_DATABASE, USERS}

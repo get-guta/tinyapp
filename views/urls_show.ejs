@@ -29,6 +29,7 @@
       <form method = "post" action = "/urls/<%= id%>">
         <label for="new url"> New URL:  </label>
         <input type = "text" name = "longURL" id ="new url" value="<%= longURL%>"/>
+        <input type = "hidden" name = "shortUrl"  value="<%= id%>"/>
         <input type = "submit" value = "Submit"/>
       </form>
     </div>

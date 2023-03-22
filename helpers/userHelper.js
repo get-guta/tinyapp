@@ -14,7 +14,7 @@ const isAuthenticated = function ( password, userData) {
 
   }
 
-const getUserByEmail = function (email, userDB) {
+const getUserByEmail= function (email, userDB) {
 
   for (let userKey in userDB) {
     const userData = userDB[userKey];
@@ -43,6 +43,6 @@ const addUser = function (email, password, userDB) {
 
 module.exports = {
   isAuthenticated,
-  getUserByEmail,
+   getUserByEmail,
   addUser
 }
